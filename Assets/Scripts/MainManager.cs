@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+
+
 public class MainManager : MonoBehaviour
 {
     public Brick BrickPrefab;
@@ -11,6 +13,7 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -18,8 +21,12 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
+    private void Awake()
+    {
+        DataManager.Instance.LoadData();
+        SetHighscore(m_Points);
+    }
+
     void Start()
     {
         const float step = 0.6f;
@@ -55,6 +62,8 @@ public class MainManager : MonoBehaviour
         }
         else if (m_GameOver)
         {
+            SetHighscore(m_Points);
+
             if (Input.GetKeyDown(KeyCode.Space))
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -65,6 +74,7 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
+        DataManager.Instance.Score = m_Points;
         ScoreText.text = $"Score : {m_Points}";
     }
 
@@ -72,5 +82,20 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+
+    public void SetHighscore(int highscore)
+    {
+        if (DataManager.Instance.bestScoreLoaded < highscore)
+        {
+            DataManager.Instance.bestScoreLoaded = highscore;
+            DataManager.Instance.bestPlayerLoaded = DataManager.Instance.Player;
+            
+            DataManager.Instance.SaveData(DataManager.Instance.bestPlayerLoaded, DataManager.Instance.bestScoreLoaded);
+        }
+
+        if (DataManager.Instance.bestPlayerLoaded == null && DataManager.Instance.bestScoreLoaded == 0) BestScoreText.text = "";
+        else BestScoreText.text = $"Best Score: {DataManager.Instance.bestPlayerLoaded} : {DataManager.Instance.bestScoreLoaded}";
     }
 }
